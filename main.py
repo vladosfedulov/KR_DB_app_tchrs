@@ -6,7 +6,11 @@ from PyQt5.QtCore import Qt
 import design
 from query import query_in, query_ins
 
-
+DB_REQUEST_SEl1 = """select * from zanyatie 
+                where Den_nedeli = '{}'
+                AND Nomer_pari = '{}'
+                AND Nedela = '{}' 
+                AND N_Auditorii = '{}'"""
 DB_REQUEST_INS1 = """insert into zamena values ('{}','{}','{}',{},{},'{}','{}',{},{},'{}') """
 DB_REQUEST_INS2 = """insert into rest values ('{}','{}','{}','{}') """
 DB_REQUEST_INS3 = """Select X1.Nomer_pari,X2.Nazvanie_discipl,X1.N_Auditorii,X1.N_gruppi,X2.Nedela
@@ -16,11 +20,30 @@ DB_REQUEST_INS3 = """Select X1.Nomer_pari,X2.Nazvanie_discipl,X1.N_Auditorii,X1.
                 group by X1.Nomer_pari,X2.Nazvanie_discipl,X1.N_Auditorii,X2.Nedela;"""
 
 
+class ExampleDialog(QtWidgets.QMainWindow, design.Ui_Dialog):
+
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+
+class ExampleDialogErr(QtWidgets.QMainWindow, design.Ui_DialogErr):
+
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+
 class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
 
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.dialog = ExampleDialog()
+        self.dialog.hide()
+        self.dialog_err = ExampleDialogErr()
+        self.dialog_err.hide()
+
         self.comboBox.activated[str].connect(self.combo_activated)
         self.pushButton.clicked.connect(self.btn_clk)
         self.pushButton_2.clicked.connect(self.btn2_clk)
@@ -55,8 +78,14 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         cortege.append(self.comboBox_7.currentText())
         cortege.append(self.comboBox_8.currentText())
 
-        query_ins(DB_REQUEST_INS1.format(cortege[0], cortege[1], cortege[2], int(cortege[3]), dayoftheweek_cb10,
+        query = query_in(DB_REQUEST_SEl1.format(cortege[5], int(cortege[6]), dayoftheweek_cb11, cortege[7]))
+
+        if query:
+            query_ins(DB_REQUEST_INS1.format(cortege[0], cortege[1], cortege[2], int(cortege[3]), dayoftheweek_cb10,
                                         cortege[4], cortege[5], int(cortege[6]), dayoftheweek_cb11, cortege[7]))
+            self.dialog.show()
+        else:
+            self.dialog_err.show()
 
     def combo_activated(self, text):
         day_of_week = ('Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота')
@@ -92,6 +121,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
 def main():
     app = QtWidgets.QApplication(sys.argv)
     window = ExampleApp()
+
     window.show()
     app.exec_()
 
